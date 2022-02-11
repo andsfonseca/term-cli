@@ -1,0 +1,39 @@
+{
+  "name": "@andsfonseca/term-cli",
+  "version": "1.0.0",
+  "description": "O clássico jogo de adivinhação de palavras agora para linha de comando. Uma nova palavra a cada dia!",
+  "main": "./dist/index.js",
+  "bin": {
+    "@andsfonseca/term-cli": "./dist/index.js",
+    "term-cli": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "test": "tsc && node dist/index.js"
+  },
+  "keywords": [
+    "palavras",
+    "pt-br",
+    "wordle",
+    "adivinhar",
+    "cli",
+    "jogo"
+  ],
+  "author": {
+    "name": "Anderson Silva",
+    "email": "andsfonseca@tecgraf.puc-rio.br",
+    "url": "http://andsfonseca.github.io/"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/andsfonseca/term-cli"
+  },
+  "bugs": {
+    "url": "https://github.com/andsfonseca/term-cli/issues"
+  },
+  "homepage": "https://github.com/andsfonseca/term-cli#readme",
+  "devDependencies": {
+    "typescript": "^4.5.5"
+  }
+}
