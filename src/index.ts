@@ -1,7 +1,6 @@
 import { Command } from "commander"
 import chalk from "chalk"
 import figlet from "figlet"
-import { IWordleValidation, Word, BRISPELL, UNVERSEDV2 } from "@andsfonseca/palavras-pt-br"
 
 import PROJECT_SETTINGS from "./Strings.json"
 import { Game } from "./game"

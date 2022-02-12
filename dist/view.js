@@ -9,6 +9,12 @@ class View {
     static clear() {
         console.clear();
     }
+    static clearLine(count = 1) {
+        for (let i = 0; i < count; i++) {
+            process.stdout.moveCursor(0, -1);
+            process.stdout.clearLine(1);
+        }
+    }
     static renderTitle(title) {
         console.log(title);
         this.renderSeparator();
@@ -20,8 +26,10 @@ class View {
         this.renderSeparator();
         console.log();
     }
-    static renderWarning(text) {
+    static renderWarning(text, space = 0) {
         console.log(chalk_1.default.blue(text));
+        for (let i = 0; i < space; i++)
+            console.log();
     }
     static renderStatus(letters, validations = null, word_size = 5) {
         let len = letters.length;
@@ -49,11 +57,29 @@ class View {
         string += ".";
         console.log(string);
     }
-    static clearLine(count = 1) {
-        for (let i = 0; i < count; i++) {
-            process.stdout.moveCursor(0, -1);
-            process.stdout.clearLine(1);
+    static getBoardEmoction(validation) {
+        if (validation.exact)
+            return "🟩";
+        if (validation.contains)
+            return "🟨";
+        return "🟥";
+    }
+    static renderStaticts(games, wins, stats) {
+        console.log();
+        this.renderSeparator();
+        console.log(chalk_1.default.blue("Jogos: " + games) + chalk_1.default.blue("\tVitórias: ") + chalk_1.default.green(wins) + chalk_1.default.blue("\tDerrotas: ") + chalk_1.default.red(games - wins) + chalk_1.default.blue("\t - ") + chalk_1.default.blue(Math.floor(wins / games * 100) + "% de vitórias"));
+        console.log();
+    }
+    static renderBoard(validations, size = 5) {
+        let s = "";
+        for (let i = 0, len = validations.length; i < len; i++) {
+            for (let j = 0; j < 5; j++) {
+                s += this.getBoardEmoction(validations[i][j]);
+            }
+            s += "\n";
         }
+        console.log(s);
+        return s;
     }
 }
 exports.View = View;

@@ -23,10 +23,14 @@ class Game {
         stdin.resume();
         stdin.setEncoding('utf8');
         stdin.on('data', (key) => {
-            this.OnKeyDetect(key);
+            if (!this.isOver)
+                this.onDetectAnyKeyDuringGame(key);
+            else {
+                process.exit();
+            }
         });
     }
-    static OnKeyDetect(key) {
+    static onDetectAnyKeyDuringGame(key) {
         let warning = "";
         let keyAsString = key.toString();
         // ctrl-c -> Sair do Jogo
@@ -38,7 +42,6 @@ class Game {
         //@ts-ignore
         else if (key === '\b' || key == '\x1B[3~') {
             this.currentLetters.pop();
-            view_1.View.clearLine(3);
         }
         //Se Enter -> Próximo estado
         //@ts-ignore
@@ -46,30 +49,57 @@ class Game {
             let word = this.currentLetters.join('').toLowerCase();
             if (this.currentLetters.length != 5) {
                 warning = "Letra(s) faltando!";
-                view_1.View.clearLine(3);
             }
             else if (!palavras_pt_br_1.Word.checkValid(word)) {
                 warning = "Esta palavra não existe!";
-                view_1.View.clearLine(3);
             }
             else {
                 let validations = palavras_pt_br_1.Word.wordleValidator(this.dailyWord, word);
-                view_1.View.clearLine(3);
-                view_1.View.renderStatus(this.currentLetters, validations);
+                this.triedWords.push(this.currentLetters);
+                this.triedWordsValidated.push(validations);
+                this.currentAttempt++;
+                //Estado de Win
+                if (validations.every(v => v.exact === true)) {
+                    this.isOver = true;
+                }
+                //Estado de Perda
+                else if (this.currentAttempt == this.ATTEMPTS) {
+                    this.isOver = true;
+                }
+                else {
+                    this.currentLetters = [];
+                }
                 view_1.View.renderKeyboard(this.keyboard, validations, this.WORD_SIZE, false);
-                this.currentLetters = [];
             }
         }
         //Se ainda pode escrever faça
         else if (this.currentLetters.length < this.WORD_SIZE && this.ALLOWED_LETTERS.indexOf(keyAsString.toUpperCase()) > -1) {
             this.currentLetters.push(keyAsString.toUpperCase());
-            view_1.View.clearLine(3);
         }
         else {
             return;
         }
-        view_1.View.renderStatus(this.currentLetters);
-        view_1.View.renderWarning(warning);
+        this.loadBoard(warning, true, !this.isOver);
+        if (this.isOver) {
+            view_1.View.renderStaticts(1, 1, []);
+            view_1.View.renderBoard(this.triedWordsValidated);
+            view_1.View.renderWarning("Estatísticas do jogo copiadas para a área de transferência");
+            console.log("Clique em qualquer tecla para sair...");
+        }
+    }
+    static loadBoard(additionalWarning = "", clearBeforeRender = false, renderCleanTry = true) {
+        if (clearBeforeRender)
+            view_1.View.clearLine(this.boardSize);
+        this.boardSize = 4;
+        view_1.View.renderWarning("Tentativas restantes: " + (this.ATTEMPTS - this.currentAttempt), 1);
+        for (let i = 0; i < this.currentAttempt; i++, this.boardSize++) {
+            view_1.View.renderStatus(this.triedWords[i], this.triedWordsValidated[i]);
+        }
+        if (renderCleanTry) {
+            view_1.View.renderStatus(this.currentLetters);
+            this.boardSize++;
+        }
+        view_1.View.renderWarning(additionalWarning);
         view_1.View.renderKeyboard(this.keyboard);
     }
     static start() {
@@ -81,10 +111,8 @@ class Game {
         this.loadDatabase();
         //Cria o teclado
         this.createKeyboard();
-        //Parte Inicial do Jogo
-        view_1.View.renderStatus(this.currentLetters);
-        view_1.View.renderWarning("");
-        view_1.View.renderKeyboard(this.keyboard);
+        //Carrega o tabuleiro
+        this.loadBoard();
         //Game Loop
         this.gameLoop();
     }
@@ -99,7 +127,10 @@ Game.wordsWithoutAccents = [];
 Game.dailyWord = "";
 Game.currentAttempt = 0;
 Game.triedWords = [];
+Game.triedWordsValidated = [];
 Game.currentLetters = [];
 Game.keyboard = {};
+Game.boardSize = 5;
+Game.isOver = false;
 Game.title = "Game";
 Game.tips = "Dicas";

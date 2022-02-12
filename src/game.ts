@@ -1,6 +1,5 @@
-import { BRISPELL, UNVERSEDV2, Word } from "@andsfonseca/palavras-pt-br";
+import { BRISPELL, IWordleValidation, UNVERSEDV2, Word } from "@andsfonseca/palavras-pt-br";
 import { View } from "./view";
-
 
 export abstract class Game {
 
@@ -14,8 +13,11 @@ export abstract class Game {
     private static dailyWord: string = ""
     private static currentAttempt = 0
     private static triedWords: string[][] = []
+    private static triedWordsValidated: IWordleValidation[][] = []
     private static currentLetters: string[] = []
     private static keyboard: { [name: string]: (text: string) => string } = {}
+    private static boardSize : number= 5;
+    private static isOver = false;
 
     public static title: string = "Game"
     public static tips: string = "Dicas"
@@ -43,12 +45,17 @@ export abstract class Game {
         stdin.setEncoding('utf8');
 
         stdin.on('data',(key) => {
-            this.OnKeyDetect(key)
+            if(!this.isOver)
+                this.onDetectAnyKeyDuringGame(key)
+            else{
+                process.exit();
+            }
         })
     }
 
-    private static OnKeyDetect(key: Buffer){
+    private static onDetectAnyKeyDuringGame(key: Buffer){
         let warning = ""
+
         let keyAsString = key.toString()
         // ctrl-c -> Sair do Jogo
         //@ts-ignore
@@ -60,7 +67,6 @@ export abstract class Game {
         //@ts-ignore
         else if (key === '\b' || key == '\x1B[3~') {
             this.currentLetters.pop()
-            View.clearLine(3)
         }
         //Se Enter -> Próximo estado
         //@ts-ignore
@@ -69,19 +75,29 @@ export abstract class Game {
 
             if (this.currentLetters.length != 5) {
                 warning = "Letra(s) faltando!"
-                View.clearLine(3)
             }
             else if (!Word.checkValid(word)) {
                 warning = "Esta palavra não existe!"
-                View.clearLine(3)
             }
             else {
                 let validations = Word.wordleValidator(this.dailyWord, word)
-                View.clearLine(3)
-                View.renderStatus(this.currentLetters, validations)
+
+                this.triedWords.push(this.currentLetters)
+                this.triedWordsValidated.push(validations)
+                this.currentAttempt++
+
+                //Estado de Win
+                if(validations.every(v => v.exact === true)){
+                    this.isOver = true
+                }
+                //Estado de Perda
+                else if (this.currentAttempt == this.ATTEMPTS){
+                    this.isOver = true
+                }
+                else{
+                    this.currentLetters = []
+                }
                 View.renderKeyboard(this.keyboard, validations, this.WORD_SIZE, false)
-                this.currentLetters = []
-                
             }
 
         }
@@ -89,15 +105,39 @@ export abstract class Game {
         //Se ainda pode escrever faça
         else if (this.currentLetters.length < this.WORD_SIZE && this.ALLOWED_LETTERS.indexOf(keyAsString.toUpperCase()) > -1) {
             this.currentLetters.push(keyAsString.toUpperCase())
-            View.clearLine(3)
         }
         else {
             return;
         }
 
-        View.renderStatus(this.currentLetters)
-        View.renderWarning(warning)
+        this.loadBoard(warning, true, !this.isOver)
+
+        if(this.isOver){
+            View.renderStaticts(1, 1, [])
+            View.renderBoard(this.triedWordsValidated)
+            View.renderWarning("Estatísticas do jogo copiadas para a área de transferência")
+            console.log("Clique em qualquer tecla para sair...")
+        }
+    }
+
+    private static loadBoard(additionalWarning : string = "", clearBeforeRender = false, renderCleanTry = true){
+        if(clearBeforeRender)
+            View.clearLine(this.boardSize)
+        
+        this.boardSize = 4
+
+        View.renderWarning("Tentativas restantes: " + (this.ATTEMPTS - this.currentAttempt), 1)
+        for(let i = 0; i< this.currentAttempt; i++, this.boardSize++){
+            View.renderStatus(this.triedWords[i], this.triedWordsValidated[i])
+        }
+        if(renderCleanTry){
+            View.renderStatus(this.currentLetters)
+            this.boardSize++
+        }
+
+        View.renderWarning(additionalWarning)
         View.renderKeyboard(this.keyboard)
+
     }
 
     public static start() {
@@ -112,14 +152,13 @@ export abstract class Game {
         //Cria o teclado
         this.createKeyboard();
 
-        //Parte Inicial do Jogo
-        View.renderStatus(this.currentLetters)
-        View.renderWarning("")
-        View.renderKeyboard(this.keyboard)
-        
+        //Carrega o tabuleiro
+        this.loadBoard()
+
         //Game Loop
         this.gameLoop()
     }
+
 
 
 

@@ -2,11 +2,17 @@ import { IWordleValidation } from "@andsfonseca/palavras-pt-br/dist/interfaces/w
 import chalk from "chalk"
 
 export abstract class View {
-
+    
     static clear() {
         console.clear()
     }
-
+    
+    static clearLine(count: number = 1) {
+        for (let i = 0; i < count; i++) {
+            process.stdout.moveCursor(0, -1)
+            process.stdout.clearLine(1)
+        }
+    }
     static renderSeparator = () => {
         const line = '-'.repeat(process.stdout.columns)
         console.log(line)
@@ -25,8 +31,9 @@ export abstract class View {
         console.log()
     }
 
-    static renderWarning(text: string) {
+    static renderWarning(text: string, space:number = 0) {
         console.log(chalk.blue(text))
+        for (let i = 0; i < space; i++) console.log()
     }
 
     static renderStatus(letters: string[], validations: IWordleValidation[] | null = null, word_size = 5) {
@@ -90,11 +97,34 @@ export abstract class View {
             console.log(string)
     }
 
-    static clearLine(count: number = 1) {
-        for (let i = 0; i < count; i++) {
-            process.stdout.moveCursor(0, -1)
-            process.stdout.clearLine(1)
-        }
+    private static getBoardEmoction(validation : IWordleValidation){
+        if(validation.exact)
+            return "🟩"
+        if(validation.contains)
+            return "🟨"
+        return "🟥"
     }
+
+    static renderStaticts (games:  number, wins: number, stats: number[]){
+        console.log()
+        this.renderSeparator()
+        console.log(chalk.blue("Jogos: " + games) + chalk.blue("\tVitórias: ") + chalk.green(wins) + chalk.blue("\tDerrotas: ") + chalk.red(games-wins) + chalk.blue("\t - ")  + chalk.blue(Math.floor(wins/games * 100) + "% de vitórias"))
+        console.log()
+    }
+
+    static renderBoard(validations: IWordleValidation[][], size:number = 5) : string{
+        let s : string = ""
+        
+        for(let i = 0, len = validations.length; i< len; i++){
+            for (let j = 0; j< 5; j++){
+                s += this.getBoardEmoction(validations[i][j])
+            }
+            s += "\n"
+        }
+
+        console.log(s)
+        return s
+    }
+
 
 }
