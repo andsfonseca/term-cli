@@ -9,6 +9,7 @@ const figlet_1 = __importDefault(require("figlet"));
 const palavras_pt_br_1 = require("@andsfonseca/palavras-pt-br");
 const Strings_json_1 = __importDefault(require("./Strings.json"));
 const WORD_SIZE = 5;
+palavras_pt_br_1.Word.library = [...palavras_pt_br_1.BRISPELL, ...palavras_pt_br_1.UNVERSEDV2];
 const WORDS = palavras_pt_br_1.Word.getAllWords(WORD_SIZE, false, false, false, false);
 palavras_pt_br_1.Word.library = WORDS;
 const WORDS_WITHOUT_ACCENTS = palavras_pt_br_1.Word.getAllWords(WORD_SIZE, true);
@@ -38,12 +39,27 @@ const RenderTips = () => {
     RenderSeparator();
     console.log();
 };
-const RenderStatus = (letters) => {
+const RenderStatus = (letters, validations = null) => {
     let len = letters.length;
     let i = 0;
     let string = "";
+    let setColor = [];
+    if (validations == null)
+        setColor = letters.map((_) => {
+            return (s) => { return s; };
+        });
+    else {
+        setColor = validations.map((validation) => {
+            if (validation.exact)
+                return chalk_1.default.green;
+            else if (validation.contains)
+                return chalk_1.default.yellow;
+            else
+                return chalk_1.default.red;
+        });
+    }
     for (; i < len; i++)
-        string += ". " + letters[i] + " ";
+        string += ". " + setColor[i](letters[i]) + " ";
     for (; i < WORD_SIZE; i++)
         string += ". " + "-" + " ";
     string += ".";
@@ -52,12 +68,29 @@ const RenderStatus = (letters) => {
 const RenderWarning = (text) => {
     console.log(chalk_1.default.blue(text));
 };
-const RenderKeyboard = (keyboard) => {
+const RenderKeyboard = (keyboard, validations = null, render = true) => {
+    if (validations != null) {
+        for (let i = 0; i < WORD_SIZE; i++) {
+            let letter = validations[i].word.toUpperCase();
+            if (validations[i].exact) {
+                keyboard[letter] = chalk_1.default.bgGreen;
+            }
+            else if (validations[i].contains) {
+                if (keyboard[letter] != chalk_1.default.bgGreen)
+                    keyboard[letter] = chalk_1.default.bgYellow;
+            }
+            else {
+                if (keyboard[letter] != chalk_1.default.bgGreen && keyboard[letter] != chalk_1.default.bgYellow)
+                    keyboard[letter] = chalk_1.default.bgRed;
+            }
+        }
+    }
     let string = "";
     for (let key in keyboard) {
         string += keyboard[key](key) + " ";
     }
-    console.log(string);
+    if (render)
+        console.log(string);
 };
 const Game = () => {
     let dailyWord = palavras_pt_br_1.Word.getDailyWord();
@@ -100,8 +133,11 @@ const Game = () => {
                 ClearLine(3);
             }
             else {
+                let validations = palavras_pt_br_1.Word.wordleValidator(dailyWord, word);
+                ClearLine(3);
+                RenderStatus(letters, validations);
+                RenderKeyboard(keyboard, validations, false);
                 letters = [];
-                ClearLine(2);
             }
         }
         //Se ainda pode escrever faça

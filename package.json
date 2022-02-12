@@ -42,7 +42,7 @@
     "typescript": "^4.5.5"
   },
   "dependencies": {
-    "@andsfonseca/palavras-pt-br": "^1.0.7",
+    "@andsfonseca/palavras-pt-br": "^1.0.8",
     "chalk": "^4.1.2",
     "commander": "^9.0.0",
     "figlet": "^1.5.2"

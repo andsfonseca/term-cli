@@ -1,13 +1,13 @@
 import { Command } from "commander"
 import chalk from "chalk"
 import figlet from "figlet"
-import {Word} from "@andsfonseca/palavras-pt-br"
+import { IWordleValidation, Word, BRISPELL, UNVERSEDV2 } from "@andsfonseca/palavras-pt-br"
 
 import PROJECT_SETTINGS from "./Strings.json"
 
 
 const WORD_SIZE = 5
-
+Word.library = [...BRISPELL, ...UNVERSEDV2]
 const WORDS = Word.getAllWords(WORD_SIZE, false, false, false, false)
 Word.library = WORDS
 const WORDS_WITHOUT_ACCENTS = Word.getAllWords(WORD_SIZE, true)
@@ -18,6 +18,8 @@ const TRYS = 6
 const BANNER: string = chalk.green(figlet.textSync('term-cli', { horizontalLayout: 'full' }))
 
 const ALLOWED_LETTERS = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"]
+
+const 
 
 const ClearLine = (count = 1) => {
     for (let i = 0; i < count; i++) {
@@ -48,13 +50,30 @@ const RenderTips = () => {
     console.log()
 }
 
-const RenderStatus = (letters: string[]) => {
+const RenderStatus = (letters: string[], validations: IWordleValidation[] | null = null) => {
     let len = letters.length
     let i = 0
     let string = ""
 
+    let setColor: ((s: string) => string)[] = []
+
+    if (validations == null)
+        setColor = letters.map((_) => {
+            return (s: string) => { return s }
+        })
+
+    else {
+        setColor = validations.map((validation) => {
+            if(validation.exact)
+                return chalk.green
+            else if (validation.contains)
+                return chalk.yellow
+            else
+                return chalk.red
+        })
+    }
     for (; i < len; i++)
-        string += ". " + letters[i] + " "
+        string += ". " + setColor[i](letters[i]) + " "
 
     for (; i < WORD_SIZE; i++)
         string += ". " + "-" + " "
@@ -64,15 +83,35 @@ const RenderStatus = (letters: string[]) => {
     console.log(string)
 }
 
-const RenderWarning = (text: string) =>{
+const RenderWarning = (text: string) => {
     console.log(chalk.blue(text))
 }
-const RenderKeyboard = (keyboard :{[name: string]: (text:string) => void }) => {
+const RenderKeyboard = (keyboard: { [name: string]: (text: string) => void }, validations: IWordleValidation[] | null = null, render = true) => {
+
+    if (validations != null){
+        for(let i = 0; i< WORD_SIZE; i++){
+            let letter = validations[i].word.toUpperCase()
+            if(validations[i].exact){
+                keyboard[letter] = chalk.bgGreen
+            }
+            else if(validations[i].contains){
+                if (keyboard[letter] != chalk.bgGreen)
+                    keyboard[letter] = chalk.bgYellow
+            }
+            else{
+                if (keyboard[letter] != chalk.bgGreen && keyboard[letter] != chalk.bgYellow)
+                    keyboard[letter] = chalk.bgRed
+            }
+        }
+    }
+
     let string = ""
     for (let key in keyboard) {
         string += keyboard[key](key) + " ";
     }
-    console.log(string)
+
+    if(render)
+        console.log(string)
 }
 
 
@@ -84,10 +123,10 @@ const Game = () => {
 
     let currentTry = 0
 
-    let keyboard :{[name: string]: (text:string) => string } = {}
+    let keyboard: { [name: string]: (text: string) => string } = {}
 
-    for(let i = 0; i < ALLOWED_LETTERS.length; i++){
-        keyboard[ALLOWED_LETTERS[i]] = (s: string) => {return s}
+    for (let i = 0; i < ALLOWED_LETTERS.length; i++) {
+        keyboard[ALLOWED_LETTERS[i]] = (s: string) => { return s }
     }
 
     let stdin = process.stdin;
@@ -116,19 +155,22 @@ const Game = () => {
         //@ts-ignore
         else if (key === '\r') {
             let word = letters.join('').toLowerCase()
-            
-            if(letters.length != 5){
+
+            if (letters.length != 5) {
                 warning = "Letra(s) faltando!"
                 ClearLine(3)
-
             }
-            else if(!Word.checkValid(word)){
+            else if (!Word.checkValid(word)) {
                 warning = "Esta palavra não existe!"
                 ClearLine(3)
             }
-            else{
+            else {
+                let validations = Word.wordleValidator(dailyWord, word)
+                ClearLine(3)
+                RenderStatus(letters, validations)
+                RenderKeyboard(keyboard, validations, false)
                 letters = []
-                ClearLine(2)
+                
             }
 
         }
