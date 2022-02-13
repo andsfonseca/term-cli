@@ -69,6 +69,15 @@ class View {
         this.renderSeparator();
         console.log(chalk_1.default.blue("Jogos: " + games) + chalk_1.default.blue("\tVitórias: ") + chalk_1.default.green(wins) + chalk_1.default.blue("\tDerrotas: ") + chalk_1.default.red(games - wins) + chalk_1.default.blue("\t - ") + chalk_1.default.blue(Math.floor(wins / games * 100) + "% de vitórias"));
         console.log();
+        let blocks = Math.floor(process.stdout.columns / 8);
+        let s = "";
+        let icons = ["1 ", "2 ", "3 ", "4 ", "5 ", "6 ", "❌"];
+        for (let i = 0, len = stats.length; i < len; i++) {
+            s += icons[i] + " ";
+            let n_blocks = Math.floor((stats[i] / games) * blocks);
+            s += '🟦'.repeat(n_blocks) + " - " + stats[i] + "\n";
+        }
+        console.log(s);
     }
     static renderBoard(validations, size = 5) {
         let s = "";
@@ -78,7 +87,6 @@ class View {
             }
             s += "\n";
         }
-        console.log(s);
         return s;
     }
 }

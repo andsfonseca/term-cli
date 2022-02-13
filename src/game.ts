@@ -1,5 +1,8 @@
 import { BRISPELL, IWordleValidation, UNVERSEDV2, Word } from "@andsfonseca/palavras-pt-br";
 import { View } from "./view";
+import { homedir }  from "os"
+
+const storage = require('node-persist');
 
 export abstract class Game {
 
@@ -53,8 +56,10 @@ export abstract class Game {
         })
     }
 
+    
     private static onDetectAnyKeyDuringGame(key: Buffer){
         let warning = ""
+        let win = false
 
         let keyAsString = key.toString()
         // ctrl-c -> Sair do Jogo
@@ -72,7 +77,7 @@ export abstract class Game {
         //@ts-ignore
         else if (key === '\r') {
             let word = this.currentLetters.join('').toLowerCase()
-
+            
             if (this.currentLetters.length != 5) {
                 warning = "Letra(s) faltando!"
             }
@@ -81,14 +86,15 @@ export abstract class Game {
             }
             else {
                 let validations = Word.wordleValidator(this.dailyWord, word)
-
+                
                 this.triedWords.push(this.currentLetters)
                 this.triedWordsValidated.push(validations)
                 this.currentAttempt++
-
+                
                 //Estado de Win
                 if(validations.every(v => v.exact === true)){
                     this.isOver = true
+                    win = true
                 }
                 //Estado de Perda
                 else if (this.currentAttempt == this.ATTEMPTS){
@@ -99,7 +105,7 @@ export abstract class Game {
                 }
                 View.renderKeyboard(this.keyboard, validations, this.WORD_SIZE, false)
             }
-
+            
         }
 
         //Se ainda pode escrever faça
@@ -109,23 +115,22 @@ export abstract class Game {
         else {
             return;
         }
-
+        
         this.loadBoard(warning, true, !this.isOver)
-
+        
         if(this.isOver){
-            View.renderStaticts(1, 1, [])
-            View.renderBoard(this.triedWordsValidated)
-            View.renderWarning("Estatísticas do jogo copiadas para a área de transferência")
-            console.log("Clique em qualquer tecla para sair...")
+            this.final(win, this.currentAttempt).then( () => {
+                console.log("Clique em qualquer tecla para sair...")
+            })
         }
     }
-
+    
     private static loadBoard(additionalWarning : string = "", clearBeforeRender = false, renderCleanTry = true){
         if(clearBeforeRender)
-            View.clearLine(this.boardSize)
+        View.clearLine(this.boardSize)
         
         this.boardSize = 4
-
+        
         View.renderWarning("Tentativas restantes: " + (this.ATTEMPTS - this.currentAttempt), 1)
         for(let i = 0; i< this.currentAttempt; i++, this.boardSize++){
             View.renderStatus(this.triedWords[i], this.triedWordsValidated[i])
@@ -134,32 +139,84 @@ export abstract class Game {
             View.renderStatus(this.currentLetters)
             this.boardSize++
         }
-
+        
         View.renderWarning(additionalWarning)
         View.renderKeyboard(this.keyboard)
-
+        
     }
-
+    
     public static start() {
         //Visualização Inicial
         View.clear()
         View.renderTitle(this.title)
         View.renderSection(this.tips)
-
+        
         //Carrega a Base de Dados
         this.loadDatabase();
-
+        
         //Cria o teclado
         this.createKeyboard();
-
+        
         //Carrega o tabuleiro
         this.loadBoard()
-
+        
         //Game Loop
         this.gameLoop()
     }
+    
+    private static async final(win: boolean, position : number = 6){
+        await storage.init({dir: homedir + "/.term-cli"})
 
+        let count : number | undefined = await storage.getItem('count')
+        
+        if(count == undefined){
+            console.log("")
+            await this.resetStats();
+            count = 0
+        }
 
+        let wins = await storage.getItem('wins') as number
+        let stats = await storage.getItem('stats') as number[]
+        let date = await storage.getItem('lastGame') as Date
 
+        if(win){
+            wins++
+        }
+        count++
 
+        stats[position]++
+        date = new Date()
+
+        await storage.setItem("count", count);
+        await storage.setItem("wins", wins);
+        await storage.setItem("stats", stats)
+        await storage.setItem("lastGame", date)
+
+        View.renderStaticts(count, wins, stats)
+        View.renderBoard(this.triedWordsValidated)
+        View.renderWarning("Estatísticas do jogo copiadas para a área de transferência")
+    }
+
+    private static async resetStats(store:any = undefined){
+
+        if(store == undefined){
+            storage.init({dir: homedir + "/.term-cli"}).then( (_: any) => {
+                this.resetStats(storage)
+            })
+        }
+        else{
+            await storage.setItem("count", 0);
+            await storage.setItem("wins", 0);
+            await storage.setItem("stats", [0,0,0,0,0,0,0])
+            let d = new Date()
+            d.setDate(d.getDate() - 5)
+            await storage.setItem("lastGame", d)
+        }
+
+    }
+    
+    
+    
+    
+    
 }

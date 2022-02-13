@@ -105,12 +105,26 @@ export abstract class View {
         return "🟥"
     }
 
-    static renderStaticts (games:  number, wins: number, stats: number[]){
+    static renderStaticts (games:  number, wins: number,  stats: number[]){
         console.log()
         this.renderSeparator()
         console.log(chalk.blue("Jogos: " + games) + chalk.blue("\tVitórias: ") + chalk.green(wins) + chalk.blue("\tDerrotas: ") + chalk.red(games-wins) + chalk.blue("\t - ")  + chalk.blue(Math.floor(wins/games * 100) + "% de vitórias"))
         console.log()
+
+        let blocks = Math.floor(process.stdout.columns/8)
+        let s = ""
+        let icons = ["1 ","2 ","3 ","4 ","5 ","6 ","❌"]
+        for(let i = 0, len = stats.length; i< len; i++){
+                s += icons[i] +" "
+            
+            let n_blocks = Math.floor((stats[i]/games) * blocks)
+
+            s += '🟦'.repeat(n_blocks) + " - " + stats[i] +"\n"
+        }
+
+        console.log(s)
     }
+
 
     static renderBoard(validations: IWordleValidation[][], size:number = 5) : string{
         let s : string = ""
@@ -122,7 +136,6 @@ export abstract class View {
             s += "\n"
         }
 
-        console.log(s)
         return s
     }
 
