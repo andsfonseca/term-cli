@@ -200,19 +200,15 @@ export abstract class Game {
     private static async resetStats(store:any = undefined){
 
         if(store == undefined){
-            storage.init({dir: homedir + "/.term-cli"}).then( (_: any) => {
-                this.resetStats(storage)
-            })
+            await storage.init({dir: homedir + "/.term-cli"})
+            store = storage
         }
-        else{
-            await storage.setItem("count", 0);
-            await storage.setItem("wins", 0);
-            await storage.setItem("stats", [0,0,0,0,0,0,0])
-            let d = new Date()
-            d.setDate(d.getDate() - 5)
-            await storage.setItem("lastGame", d)
-        }
-
+        await store.setItem("count", 0);
+        await store.setItem("wins", 0);
+        await store.setItem("stats", [0,0,0,0,0,0,0])
+        let d = new Date()
+        d.setDate(d.getDate() - 5)
+        await store.setItem("lastGame", d)
     }
     
     
