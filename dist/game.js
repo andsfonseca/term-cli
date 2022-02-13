@@ -158,16 +158,15 @@ class Game {
     static resetStats(store = undefined) {
         return __awaiter(this, void 0, void 0, function* () {
             if (store == undefined) {
-                storage.init({ dir: os_1.homedir + "/.term-cli" }).then((_) => {
-                    this.resetStats(storage);
-                });
+                yield storage.init({ dir: os_1.homedir + "/.term-cli" });
+                store = storage;
             }
-            yield storage.setItem("count", 0);
-            yield storage.setItem("wins", 0);
-            yield storage.setItem("stats", [0, 0, 0, 0, 0, 0, 0]);
+            yield store.setItem("count", 0);
+            yield store.setItem("wins", 0);
+            yield store.setItem("stats", [0, 0, 0, 0, 0, 0, 0]);
             let d = new Date();
             d.setDate(d.getDate() - 5);
-            yield storage.setItem("lastGame", d);
+            yield store.setItem("lastGame", d);
         });
     }
 }
