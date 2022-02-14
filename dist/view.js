@@ -20,18 +20,20 @@ class View {
         this.renderSeparator();
         console.log();
     }
-    static renderSection(section) {
+    static renderSection(section, separate = true) {
         console.log(section);
         console.log();
-        this.renderSeparator();
-        console.log();
+        if (separate) {
+            this.renderSeparator();
+            console.log();
+        }
     }
     static renderWarning(text, space = 0) {
         console.log(chalk_1.default.blue(text));
         for (let i = 0; i < space; i++)
             console.log();
     }
-    static renderStatus(letters, validations = null, word_size = 5) {
+    static renderStatus(letters, validations = null, size = 5) {
         let len = letters.length;
         let i = 0;
         let string = "";
@@ -46,13 +48,15 @@ class View {
                     return chalk_1.default.green;
                 else if (validation.contains)
                     return chalk_1.default.yellow;
+                else if (validation.word == "")
+                    return (s) => { return s; };
                 else
                     return chalk_1.default.red;
             });
         }
         for (; i < len; i++)
             string += ". " + setColor[i](letters[i]) + " ";
-        for (; i < word_size; i++)
+        for (; i < size; i++)
             string += ". " + "-" + " ";
         string += ".";
         console.log(string);

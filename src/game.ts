@@ -1,6 +1,7 @@
 import { homedir }  from "os"
 import { BRISPELL, IWordleValidation, UNVERSEDV2, Word } from "@andsfonseca/palavras-pt-br";
 import { View } from "./view";
+import chalk from "chalk";
 
 const clipboardy = require('clipboardy');
 const storage = require('node-persist');
@@ -24,7 +25,6 @@ export abstract class Game {
     private static isOver = false;
 
     public static title: string = "Game"
-    public static tips: string = "Dicas"
 
     private static loadDatabase() {
         Word.library = [...BRISPELL, ...UNVERSEDV2]
@@ -96,6 +96,7 @@ export abstract class Game {
                 if(validations.every(v => v.exact === true)){
                     this.isOver = true
                     win = true
+                    this.currentAttempt--
                 }
                 //Estado de Perda
                 else if (this.currentAttempt == this.ATTEMPTS){
@@ -150,7 +151,7 @@ export abstract class Game {
         //Visualização Inicial
         View.clear()
         View.renderTitle(this.title)
-        View.renderSection(this.tips)
+        this.loadTips()
         
         //Carrega a Base de Dados
         this.loadDatabase();
@@ -164,7 +165,8 @@ export abstract class Game {
         //Game Loop
         this.gameLoop()
     }
-    
+
+
     private static async final(win: boolean, position : number = 6){
         await storage.init({dir: homedir + "/.term-cli"})
 
@@ -237,6 +239,18 @@ export abstract class Game {
         let d = new Date()
         d.setDate(d.getDate() - 5)
         await store.setItem("lastGame", d)
+    }
+
+    private static loadTips() {
+        View.renderSection("O objetivo é descobrir qual é a palavra correta em apenas 6 tentativas.", false)
+        View.renderSection("A cada letra digitada que faz parte da palavra correta dicas serão exibidas, de acordo com as cores das letras, veja abaixo:", false)
+        View.renderStatus(["P", "A", "L", "C", "O"], [{exact: false, contains: false, word:""}, {exact: true, contains: false, word:"A"}, {exact: false, contains: false, word:""}, {exact: false, contains: false, word:""}, {exact: false, contains: false, word:""}])
+        View.renderSection("A letra " + chalk.green("A") + " está na posição correta.", false)
+        View.renderStatus(["C", "E", "S", "T", "O"], [{exact: false, contains: true, word:"C"}, {exact: false, contains: false, word:""}, {exact: false, contains: false, word:""}, {exact: false, contains: false, word:""}, {exact: false, contains: false, word:""}])
+        View.renderSection("A letra " + chalk.yellow("C") + " contém na palavra, mas em outra posição.", false)
+        View.renderStatus(["L", "E", "I", "T", "E"], [{exact: false, contains: false, word:""}, {exact: false, contains: false, word:""}, {exact: false, contains: false, word:""}, {exact: false, contains: false, word:"T"}, {exact: false, contains: false, word:""}])
+        View.renderSection("A letra " + chalk.red("T") + " não contém na palavra.", false)
+        View.renderSection("Os acentos não são considerados nas dicas.")
     }
     
     
