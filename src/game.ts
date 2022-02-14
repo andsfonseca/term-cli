@@ -96,6 +96,7 @@ export abstract class Game {
                 if(validations.every(v => v.exact === true)){
                     this.isOver = true
                     win = true
+                    this.currentAttempt--
                 }
                 //Estado de Perda
                 else if (this.currentAttempt == this.ATTEMPTS){
