@@ -24,11 +24,14 @@ export abstract class View {
         console.log()
     }
 
-    static renderSection(section: string) {
+    static renderSection(section: string, separate: boolean = true) {
         console.log(section)
         console.log()
-        this.renderSeparator()
-        console.log()
+        if (separate){
+            this.renderSeparator()
+            console.log()
+        }
+        
     }
 
     static renderWarning(text: string, space:number = 0) {

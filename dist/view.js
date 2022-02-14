@@ -20,11 +20,13 @@ class View {
         this.renderSeparator();
         console.log();
     }
-    static renderSection(section) {
+    static renderSection(section, separate = true) {
         console.log(section);
         console.log();
-        this.renderSeparator();
-        console.log();
+        if (separate) {
+            this.renderSeparator();
+            console.log();
+        }
     }
     static renderWarning(text, space = 0) {
         console.log(chalk_1.default.blue(text));
