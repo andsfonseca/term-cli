@@ -97,10 +97,17 @@ export abstract class View {
             console.log(string)
     }
 
-    static renderStaticts (games:  number, wins: number,  stats: number[]){
+    static renderStaticts (games:  number, wins: number,  stats: number[], lastGameDateInfo: string, lastWinDateInfo: string) {
         console.log()
         this.renderSeparator()
-        console.log(chalk.blue("Jogos: " + games) + chalk.blue("\tVitórias: ") + chalk.green(wins) + chalk.blue("\tDerrotas: ") + chalk.red(games-wins) + chalk.blue("\t - ")  + chalk.blue(Math.floor(wins/games * 100) + "% de vitórias"))
+        console.log(chalk.blue("Jogos: " + games) + 
+            chalk.blue("\tVitórias: ") + chalk.green(wins) + 
+            chalk.blue("\tDerrotas: ") + chalk.red(games-wins) + chalk.blue("\t - ")  +
+            chalk.blue(Math.floor(wins/games * 100) + "% de vitórias") +
+            chalk.blue("\nÚltima Vitória: ") + chalk.yellow(lastWinDateInfo) +
+            chalk.blue("\tÚltima Partida: ") + chalk.white(lastGameDateInfo) 
+        )
+
         console.log()
 
         let blocks = Math.floor(process.stdout.columns/8)

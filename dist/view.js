@@ -57,10 +57,15 @@ class View {
         string += ".";
         console.log(string);
     }
-    static renderStaticts(games, wins, stats) {
+    static renderStaticts(games, wins, stats, lastGameDateInfo, lastWinDateInfo) {
         console.log();
         this.renderSeparator();
-        console.log(chalk_1.default.blue("Jogos: " + games) + chalk_1.default.blue("\tVitórias: ") + chalk_1.default.green(wins) + chalk_1.default.blue("\tDerrotas: ") + chalk_1.default.red(games - wins) + chalk_1.default.blue("\t - ") + chalk_1.default.blue(Math.floor(wins / games * 100) + "% de vitórias"));
+        console.log(chalk_1.default.blue("Jogos: " + games) +
+            chalk_1.default.blue("\tVitórias: ") + chalk_1.default.green(wins) +
+            chalk_1.default.blue("\tDerrotas: ") + chalk_1.default.red(games - wins) + chalk_1.default.blue("\t - ") +
+            chalk_1.default.blue(Math.floor(wins / games * 100) + "% de vitórias") +
+            chalk_1.default.blue("\nÚltima Vitória: ") + chalk_1.default.yellow(lastWinDateInfo) +
+            chalk_1.default.blue("\tÚltima Partida: ") + chalk_1.default.white(lastGameDateInfo));
         console.log();
         let blocks = Math.floor(process.stdout.columns / 8);
         let s = "";
