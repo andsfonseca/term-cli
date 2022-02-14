@@ -200,11 +200,11 @@ class Game {
     static loadTips() {
         view_1.View.renderSection("O objetivo é descobrir qual é a palavra correta em apenas 6 tentativas.", false);
         view_1.View.renderSection("A cada letra digitada que faz parte da palavra correta dicas serão exibidas, de acordo com as cores das letras, veja abaixo:", false);
-        view_1.View.renderStatus(["P", "A", "L", "C", "O"], [{ exact: false, contains: false, word: "P" }, { exact: true, contains: false, word: "A" }, { exact: false, contains: false, word: "L" }, { exact: false, contains: false, word: "C" }, { exact: false, contains: false, word: "O" }]);
+        view_1.View.renderStatus(["P", "A", "L", "C", "O"], [{ exact: false, contains: false, word: "" }, { exact: true, contains: false, word: "A" }, { exact: false, contains: false, word: "" }, { exact: false, contains: false, word: "" }, { exact: false, contains: false, word: "" }]);
         view_1.View.renderSection("A letra " + chalk_1.default.green("A") + " está na posição correta.", false);
-        view_1.View.renderStatus(["C", "E", "S", "T", "O"], [{ exact: false, contains: true, word: "C" }, { exact: false, contains: false, word: "E" }, { exact: false, contains: false, word: "S" }, { exact: false, contains: false, word: "T" }, { exact: false, contains: false, word: "O" }]);
+        view_1.View.renderStatus(["C", "E", "S", "T", "O"], [{ exact: false, contains: true, word: "C" }, { exact: false, contains: false, word: "" }, { exact: false, contains: false, word: "" }, { exact: false, contains: false, word: "" }, { exact: false, contains: false, word: "" }]);
         view_1.View.renderSection("A letra " + chalk_1.default.yellow("C") + " contém na palavra, mas em outra posição.", false);
-        view_1.View.renderStatus(["L", "E", "I", "T", "E"], [{ exact: false, contains: false, word: "L" }, { exact: false, contains: false, word: "E" }, { exact: false, contains: false, word: "I" }, { exact: false, contains: false, word: "T" }, { exact: false, contains: false, word: "E" }]);
+        view_1.View.renderStatus(["L", "E", "I", "T", "E"], [{ exact: false, contains: false, word: "" }, { exact: false, contains: false, word: "" }, { exact: false, contains: false, word: "" }, { exact: false, contains: false, word: "T" }, { exact: false, contains: false, word: "" }]);
         view_1.View.renderSection("A letra " + chalk_1.default.red("T") + " não contém na palavra.", false);
         view_1.View.renderSection("Os acentos não são considerados nas dicas.");
     }

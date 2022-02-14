@@ -243,11 +243,11 @@ export abstract class Game {
     private static loadTips() {
         View.renderSection("O objetivo é descobrir qual é a palavra correta em apenas 6 tentativas.", false)
         View.renderSection("A cada letra digitada que faz parte da palavra correta dicas serão exibidas, de acordo com as cores das letras, veja abaixo:", false)
-        View.renderStatus(["P", "A", "L", "C", "O"], [{exact: false, contains: false, word:"P"}, {exact: true, contains: false, word:"A"}, {exact: false, contains: false, word:"L"}, {exact: false, contains: false, word:"C"}, {exact: false, contains: false, word:"O"}])
+        View.renderStatus(["P", "A", "L", "C", "O"], [{exact: false, contains: false, word:""}, {exact: true, contains: false, word:"A"}, {exact: false, contains: false, word:""}, {exact: false, contains: false, word:""}, {exact: false, contains: false, word:""}])
         View.renderSection("A letra " + chalk.green("A") + " está na posição correta.", false)
-        View.renderStatus(["C", "E", "S", "T", "O"], [{exact: false, contains: true, word:"C"}, {exact: false, contains: false, word:"E"}, {exact: false, contains: false, word:"S"}, {exact: false, contains: false, word:"T"}, {exact: false, contains: false, word:"O"}])
+        View.renderStatus(["C", "E", "S", "T", "O"], [{exact: false, contains: true, word:"C"}, {exact: false, contains: false, word:""}, {exact: false, contains: false, word:""}, {exact: false, contains: false, word:""}, {exact: false, contains: false, word:""}])
         View.renderSection("A letra " + chalk.yellow("C") + " contém na palavra, mas em outra posição.", false)
-        View.renderStatus(["L", "E", "I", "T", "E"], [{exact: false, contains: false, word:"L"}, {exact: false, contains: false, word:"E"}, {exact: false, contains: false, word:"I"}, {exact: false, contains: false, word:"T"}, {exact: false, contains: false, word:"E"}])
+        View.renderStatus(["L", "E", "I", "T", "E"], [{exact: false, contains: false, word:""}, {exact: false, contains: false, word:""}, {exact: false, contains: false, word:""}, {exact: false, contains: false, word:"T"}, {exact: false, contains: false, word:""}])
         View.renderSection("A letra " + chalk.red("T") + " não contém na palavra.", false)
         View.renderSection("Os acentos não são considerados nas dicas.")
     }

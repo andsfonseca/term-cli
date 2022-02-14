@@ -39,7 +39,7 @@ export abstract class View {
         for (let i = 0; i < space; i++) console.log()
     }
 
-    static renderStatus(letters: string[], validations: IWordleValidation[] | null = null, word_size = 5) {
+    static renderStatus(letters: string[], validations: IWordleValidation[] | null = null, size :number = 5) {
         let len = letters.length
         let i = 0
         let string = ""
@@ -57,6 +57,8 @@ export abstract class View {
                     return chalk.green
                 else if (validation.contains)
                     return chalk.yellow
+                else if(validation.word == "")
+                    return (s: string) => { return s }
                 else
                     return chalk.red
             })
@@ -64,7 +66,7 @@ export abstract class View {
         for (; i < len; i++)
             string += ". " + setColor[i](letters[i]) + " "
 
-        for (; i < word_size; i++)
+        for (; i < size; i++)
             string += ". " + "-" + " "
 
         string += "."
