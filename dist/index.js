@@ -14,9 +14,17 @@ const cli = () => {
     let program = commander.version(Strings_json_1.default.version)
         .name('term-cli')
         .description(Strings_json_1.default.description)
+        .option('-r, --reset', 'Reinicializar estatísticas')
         .action((args) => {
-        game_1.Game.title = BANNER;
-        game_1.Game.start();
+        if (args.reset != undefined && args.reset) {
+            game_1.Game.resetStats().then(() => {
+                console.log("Estatistícas foram apagadas!");
+            });
+        }
+        else {
+            game_1.Game.title = BANNER;
+            game_1.Game.start();
+        }
     });
     program.addHelpText('before', BANNER);
     program.parse(process.argv);

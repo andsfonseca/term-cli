@@ -14,9 +14,17 @@ const cli = () => {
     let program = commander.version(PROJECT_SETTINGS.version)
         .name('term-cli')
         .description(PROJECT_SETTINGS.description)
+        .option('-r, --reset', 'Reinicializar estatísticas')
         .action((args) => {
-            Game.title = BANNER
-            Game.start()
+            if(args.reset != undefined && args.reset){
+                Game.resetStats().then(() => {
+                    console.log("Estatistícas foram apagadas!")
+                })
+            }
+            else{
+                Game.title = BANNER
+                Game.start()
+            }
         })
 
     program.addHelpText('before', BANNER);

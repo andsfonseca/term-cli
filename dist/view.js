@@ -57,13 +57,6 @@ class View {
         string += ".";
         console.log(string);
     }
-    static getBoardEmoction(validation) {
-        if (validation.exact)
-            return "🟩";
-        if (validation.contains)
-            return "🟨";
-        return "🟥";
-    }
     static renderStaticts(games, wins, stats) {
         console.log();
         this.renderSeparator();
@@ -78,16 +71,6 @@ class View {
             s += '🟦'.repeat(n_blocks) + " - " + stats[i] + "\n";
         }
         console.log(s);
-    }
-    static renderBoard(validations, size = 5) {
-        let s = "";
-        for (let i = 0, len = validations.length; i < len; i++) {
-            for (let j = 0; j < 5; j++) {
-                s += this.getBoardEmoction(validations[i][j]);
-            }
-            s += "\n";
-        }
-        return s;
     }
 }
 exports.View = View;

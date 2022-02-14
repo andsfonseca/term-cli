@@ -10,9 +10,10 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Game = void 0;
+const os_1 = require("os");
 const palavras_pt_br_1 = require("@andsfonseca/palavras-pt-br");
 const view_1 = require("./view");
-const os_1 = require("os");
+const clipboardy = require('clipboardy');
 const storage = require('node-persist');
 class Game {
     static loadDatabase() {
@@ -150,9 +151,32 @@ class Game {
             yield storage.setItem("wins", wins);
             yield storage.setItem("stats", stats);
             yield storage.setItem("lastGame", date);
+            yield this.textToClipboard("Joguei term-cli! " + (position == 6 ? "❌" : (position + 1) + "/6"), this.renderBoard(this.triedWordsValidated));
             view_1.View.renderStaticts(count, wins, stats);
-            view_1.View.renderBoard(this.triedWordsValidated);
             view_1.View.renderWarning("Estatísticas do jogo copiadas para a área de transferência");
+        });
+    }
+    static getBoardEmoction(validation) {
+        if (validation.exact)
+            return "🟩";
+        if (validation.contains)
+            return "🟨";
+        return "🟥";
+    }
+    static renderBoard(validations, size = 5) {
+        let s = "";
+        for (let i = 0, len = validations.length; i < len; i++) {
+            for (let j = 0; j < 5; j++) {
+                s += this.getBoardEmoction(validations[i][j]);
+            }
+            s += "\n";
+        }
+        return s;
+    }
+    static textToClipboard(message, board) {
+        return __awaiter(this, void 0, void 0, function* () {
+            let s = message + "\n\n" + board;
+            yield clipboardy.write(s);
         });
     }
     static resetStats(store = undefined) {

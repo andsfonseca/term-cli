@@ -97,14 +97,6 @@ export abstract class View {
             console.log(string)
     }
 
-    private static getBoardEmoction(validation : IWordleValidation){
-        if(validation.exact)
-            return "🟩"
-        if(validation.contains)
-            return "🟨"
-        return "🟥"
-    }
-
     static renderStaticts (games:  number, wins: number,  stats: number[]){
         console.log()
         this.renderSeparator()
@@ -124,20 +116,4 @@ export abstract class View {
 
         console.log(s)
     }
-
-
-    static renderBoard(validations: IWordleValidation[][], size:number = 5) : string{
-        let s : string = ""
-        
-        for(let i = 0, len = validations.length; i< len; i++){
-            for (let j = 0; j< 5; j++){
-                s += this.getBoardEmoction(validations[i][j])
-            }
-            s += "\n"
-        }
-
-        return s
-    }
-
-
 }

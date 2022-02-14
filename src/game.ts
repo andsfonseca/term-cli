@@ -1,7 +1,8 @@
+import { homedir }  from "os"
 import { BRISPELL, IWordleValidation, UNVERSEDV2, Word } from "@andsfonseca/palavras-pt-br";
 import { View } from "./view";
-import { homedir }  from "os"
 
+const clipboardy = require('clipboardy');
 const storage = require('node-persist');
 
 export abstract class Game {
@@ -192,12 +193,39 @@ export abstract class Game {
         await storage.setItem("stats", stats)
         await storage.setItem("lastGame", date)
 
+        await this.textToClipboard("Joguei term-cli! "+ (position == 6 ? "❌" : (position+1) + "/6"), this.renderBoard(this.triedWordsValidated))
         View.renderStaticts(count, wins, stats)
-        View.renderBoard(this.triedWordsValidated)
+        
         View.renderWarning("Estatísticas do jogo copiadas para a área de transferência")
     }
 
-    private static async resetStats(store:any = undefined){
+    private static getBoardEmoction(validation : IWordleValidation){
+        if(validation.exact)
+            return "🟩"
+        if(validation.contains)
+            return "🟨"
+        return "🟥"
+    }
+
+    private static renderBoard(validations: IWordleValidation[][], size:number = 5) : string{
+        let s : string = ""
+        
+        for(let i = 0, len = validations.length; i< len; i++){
+            for (let j = 0; j< 5; j++){
+                s += this.getBoardEmoction(validations[i][j])
+            }
+            s += "\n"
+        }
+
+        return s
+    }
+
+    private static async textToClipboard(message: string, board: string){
+        let s :string = message + "\n\n" + board
+        await clipboardy.write(s);
+    }
+
+    public static async resetStats(store:any = undefined){
 
         if(store == undefined){
             await storage.init({dir: homedir + "/.term-cli"})
