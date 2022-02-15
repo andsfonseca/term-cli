@@ -180,23 +180,40 @@ export abstract class Game {
 
         let wins = await storage.getItem('wins') as number
         let stats = await storage.getItem('stats') as number[]
-        let date = await storage.getItem('lastGame') as Date
 
-        if(win){
-            wins++
+        let lastGame = await storage.getItem('lastGame') as Date        
+        let lastWin = await storage.getItem('lastWin') as Date | undefined
+  
+        let lastWinDate = lastWin ? new Date(lastWin) : ""      
+
+        let date = lastGame ? new Date(lastGame) : new Date()  
+   
+        if(lastWin == undefined || lastWinDate < date){
+
+            date = new Date()
+            await storage.setItem("lastGame", date) 
+            if(win){
+                wins++
+                lastWinDate = new Date()
+                await storage.setItem('lastWin', lastWinDate)   
+            }
+            
+            count++
+            stats[position]++                       
+            await storage.setItem("count", count);
+            await storage.setItem("wins", wins);
+            await storage.setItem("stats", stats)
+            
         }
-        count++
 
-        stats[position]++
-        date = new Date()
-
-        await storage.setItem("count", count);
-        await storage.setItem("wins", wins);
-        await storage.setItem("stats", stats)
-        await storage.setItem("lastGame", date)
-
+        let lastWinDateInfo = ""
+        if(lastWinDate instanceof Date){
+            lastWinDateInfo = lastWinDate.toLocaleDateString()
+        }
+        let lastGameDateInfo = date.toLocaleDateString()
+        
         await this.textToClipboard("Joguei term-cli! "+ (position == 6 ? "❌" : (position+1) + "/6"), this.renderBoard(this.triedWordsValidated))
-        View.renderStaticts(count, wins, stats)
+        View.renderStaticts(count, wins, stats, lastGameDateInfo , lastWinDateInfo)
         
         View.renderWarning("Estatísticas do jogo copiadas para a área de transferência")
     }

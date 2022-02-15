@@ -145,19 +145,31 @@ class Game {
             }
             let wins = yield storage.getItem('wins');
             let stats = yield storage.getItem('stats');
-            let date = yield storage.getItem('lastGame');
-            if (win) {
-                wins++;
+            let lastGame = yield storage.getItem('lastGame');
+            let lastWin = yield storage.getItem('lastWin');
+            let lastWinDate = lastWin ? new Date(lastWin) : "";
+            let date = lastGame ? new Date(lastGame) : new Date();
+            if (lastWin == undefined || lastWinDate < date) {
+                date = new Date();
+                yield storage.setItem("lastGame", date);
+                if (win) {
+                    wins++;
+                    lastWinDate = new Date();
+                    yield storage.setItem('lastWin', lastWinDate);
+                }
+                count++;
+                stats[position]++;
+                yield storage.setItem("count", count);
+                yield storage.setItem("wins", wins);
+                yield storage.setItem("stats", stats);
             }
-            count++;
-            stats[position]++;
-            date = new Date();
-            yield storage.setItem("count", count);
-            yield storage.setItem("wins", wins);
-            yield storage.setItem("stats", stats);
-            yield storage.setItem("lastGame", date);
+            let lastWinDateInfo = "";
+            if (lastWinDate instanceof Date) {
+                lastWinDateInfo = lastWinDate.toLocaleDateString();
+            }
+            let lastGameDateInfo = date.toLocaleDateString();
             yield this.textToClipboard("Joguei term-cli! " + (position == 6 ? "❌" : (position + 1) + "/6"), this.renderBoard(this.triedWordsValidated));
-            view_1.View.renderStaticts(count, wins, stats);
+            view_1.View.renderStaticts(count, wins, stats, lastGameDateInfo, lastWinDateInfo);
             view_1.View.renderWarning("Estatísticas do jogo copiadas para a área de transferência");
         });
     }
