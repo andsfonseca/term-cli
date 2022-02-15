@@ -79,7 +79,6 @@ class Game {
                 if (validations.every(v => v.exact === true)) {
                     this.isOver = true;
                     win = true;
-                    this.currentAttempt--;
                 }
                 //Estado de Perda
                 else if (this.currentAttempt == this.ATTEMPTS) {
@@ -100,6 +99,8 @@ class Game {
         }
         this.loadBoard(warning, true, !this.isOver);
         if (this.isOver) {
+            if (win)
+                this.currentAttempt--;
             this.final(win, this.currentAttempt).then(() => {
                 console.log("Clique em qualquer tecla para sair...");
             });
