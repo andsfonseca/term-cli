@@ -256,7 +256,6 @@ export abstract class Game {
         let d = new Date()
         d.setDate(d.getDate() - 5)
         await store.setItem("lastGame", d)
-        //d.setDate(d.getDate()-1)
         await store.setItem("lastWin", "")  
     }
 
