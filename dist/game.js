@@ -159,7 +159,7 @@ class Game {
                 if (win) {
                     wins++;
                     lastWinDate = new Date();
-                    yield storage.setItem('lastWin', lastWinDate);
+                    yield storage.setItem("lastWin", lastWinDate);
                 }
                 count++;
                 stats[position]++;
@@ -214,6 +214,7 @@ class Game {
             let d = new Date();
             d.setDate(d.getDate() - 5);
             yield store.setItem("lastGame", d);
+            yield store.setItem("lastWin", "");
         });
     }
     static loadTips() {

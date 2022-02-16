@@ -205,7 +205,7 @@ export abstract class Game {
             if (win) {
                 wins++
                 lastWinDate = new Date()
-                await storage.setItem('lastWin', lastWinDate)
+                await storage.setItem("lastWin", lastWinDate)   
             }
 
             count++
@@ -267,6 +267,7 @@ export abstract class Game {
         let d = new Date()
         d.setDate(d.getDate() - 5)
         await store.setItem("lastGame", d)
+        await store.setItem("lastWin", "")  
     }
 
     private static loadTips() {
