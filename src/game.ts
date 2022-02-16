@@ -3,6 +3,9 @@ import { BRISPELL, IWordleValidation, UNVERSEDV2, Word } from "@andsfonseca/pala
 import { View } from "./view";
 import chalk from "chalk";
 
+import { Client } from "discord-rpc";
+import { timeStamp } from "console";
+
 const clipboardy = require('clipboardy');
 const storage = require('node-persist');
 
@@ -23,6 +26,9 @@ export abstract class Game {
     private static keyboard: { [name: string]: (text: string) => string } = {}
     private static boardSize: number = 5;
     private static isOver = false;
+    private static discordClient: any;
+    private static discordCurrentActivity: any;
+    private static discordClientIsReady: boolean;
 
     public static title: string = "Game"
 
@@ -92,6 +98,7 @@ export abstract class Game {
                 this.triedWordsValidated.push(validations)
                 this.currentAttempt++
 
+                
                 //Estado de Win
                 if (validations.every(v => v.exact === true)) {
                     this.isOver = true
@@ -104,6 +111,7 @@ export abstract class Game {
                 else {
                     this.currentLetters = []
                 }
+                this.UpdateRichPresence(this.currentAttempt+1, this.renderBoard([validations], 5, false),this.isOver)
                 View.renderKeyboard(this.keyboard, validations, this.WORD_SIZE, false)
             }
 
@@ -148,6 +156,8 @@ export abstract class Game {
     }
 
     public static start() {
+
+        this.EnableRichPresence()
         //Visualização Inicial
         View.clear()
         View.renderTitle(this.title)
@@ -181,40 +191,40 @@ export abstract class Game {
         let wins = await storage.getItem('wins') as number
         let stats = await storage.getItem('stats') as number[]
 
-        let lastGame = await storage.getItem('lastGame') as Date        
+        let lastGame = await storage.getItem('lastGame') as Date
         let lastWin = await storage.getItem('lastWin') as Date | undefined
-  
-        let lastWinDate = lastWin ? new Date(lastWin) : ""      
 
-        let date = lastGame ? new Date(lastGame) : new Date()  
-   
-        if(lastWin == undefined || lastWinDate < date){
+        let lastWinDate = lastWin ? new Date(lastWin) : ""
+
+        let date = lastGame ? new Date(lastGame) : new Date()
+
+        if (lastWin == undefined || lastWinDate < date) {
 
             date = new Date()
-            await storage.setItem("lastGame", date) 
-            if(win){
+            await storage.setItem("lastGame", date)
+            if (win) {
                 wins++
                 lastWinDate = new Date()
-                await storage.setItem('lastWin', lastWinDate)   
+                await storage.setItem("lastWin", lastWinDate)   
             }
-            
+
             count++
-            stats[position]++                       
+            stats[position]++
             await storage.setItem("count", count);
             await storage.setItem("wins", wins);
             await storage.setItem("stats", stats)
-            
+
         }
 
         let lastWinDateInfo = ""
-        if(lastWinDate instanceof Date){
+        if (lastWinDate instanceof Date) {
             lastWinDateInfo = lastWinDate.toLocaleDateString()
         }
         let lastGameDateInfo = date.toLocaleDateString()
-        
-        await this.textToClipboard("Joguei term-cli! "+ (position == 6 ? "❌" : (position+1) + "/6"), this.renderBoard(this.triedWordsValidated))
-        View.renderStaticts(count, wins, stats, lastGameDateInfo , lastWinDateInfo)
-        
+
+        await this.textToClipboard("Joguei term-cli! " + (position == 6 ? "❌" : (position + 1) + "/6"), this.renderBoard(this.triedWordsValidated))
+        View.renderStaticts(count, wins, stats, lastGameDateInfo, lastWinDateInfo)
+
         View.renderWarning("Estatísticas do jogo copiadas para a área de transferência")
     }
 
@@ -226,13 +236,14 @@ export abstract class Game {
         return "🟥"
     }
 
-    private static renderBoard(validations: IWordleValidation[][], size: number = 5): string {
+    private static renderBoard(validations: IWordleValidation[][], size: number = 5, includeSpaceOnFinal = true): string {
         let s: string = ""
 
         for (let i = 0, len = validations.length; i < len; i++) {
             for (let j = 0; j < 5; j++) {
                 s += this.getBoardEmoction(validations[i][j])
             }
+            if(i == len-1 && !includeSpaceOnFinal) continue;
             s += "\n"
         }
 
@@ -240,7 +251,7 @@ export abstract class Game {
     }
 
     private static async textToClipboard(message: string, board: string) {
-        let s: string = message + "\n\n" + board
+        let s: string = message + "\n\n" + board + "\n\nInstale também em: https://www.npmjs.com/package/@andsfonseca/term-cli"
         await clipboardy.write(s);
     }
 
@@ -256,6 +267,7 @@ export abstract class Game {
         let d = new Date()
         d.setDate(d.getDate() - 5)
         await store.setItem("lastGame", d)
+        await store.setItem("lastWin", "")  
     }
 
     private static loadTips() {
@@ -269,7 +281,41 @@ export abstract class Game {
         View.renderSection("A letra " + chalk.red("T") + " não contém na palavra.", false)
         View.renderSection("Os acentos não são considerados nas dicas.")
     }
+    
+    private static EnableRichPresence() {
+        this.discordClient = new Client({ transport: "ipc" })
 
+        this.discordCurrentActivity = {
+            details: "Tentando a palavra diária [1/6]",
+            state: "Pensando...",
+            assets: {
+                large_image: "term-cli",
+                large_text: "term-cli",
+            },
+            timestamps: { start: Date.now() },
+            instance : true
+        }
+
+        this.discordClient.on("ready", () =>{
+            this.discordClientIsReady = true
+            this.discordClient.request("SET_ACTIVITY", {pid: process.pid, activity: this.discordCurrentActivity})
+        })
+
+        this.discordClient.login({clientId: "943272235521675306"})
+    }
+
+    private static UpdateRichPresence(attempt: number, board:string, isOver: boolean = false){
+        if(this.discordClientIsReady){
+            if(!isOver)
+                this.discordCurrentActivity.details = "Tentando a palavra diária ["+ attempt +"/6]"
+            else
+                this.discordCurrentActivity.details = "Vendo as estatísticas..."
+            
+            this.discordCurrentActivity.state = board,
+
+            this.discordClient.request("SET_ACTIVITY", {pid: process.pid, activity: this.discordCurrentActivity})
+        }
+    }
 
 
 
