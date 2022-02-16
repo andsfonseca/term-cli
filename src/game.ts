@@ -4,7 +4,6 @@ import { View } from "./view";
 import chalk from "chalk";
 
 import { Client } from "discord-rpc";
-import { timeStamp } from "console";
 
 const clipboardy = require('clipboardy');
 const storage = require('node-persist');
@@ -36,7 +35,7 @@ export abstract class Game {
         Word.library = [...BRISPELL, ...UNVERSEDV2]
         this.words = Word.getAllWords(this.WORD_SIZE, false, false, false, false)
         Word.library = this.words
-        this.wordsWithoutAccents = Word.getAllWords(this.WORD_SIZE, true)
+        this.wordsWithoutAccents = this.words.map(a => a.normalize("NFD").replace(/[\u0300-\u036f]/g, ""))
         Word.library = this.wordsWithoutAccents
         this.dailyWord = Word.getDailyWord()
     }
@@ -94,11 +93,12 @@ export abstract class Game {
             else {
                 let validations = Word.wordleValidator(this.dailyWord, word)
 
-                this.triedWords.push(this.currentLetters)
+                let withAccent = this.words[this.wordsWithoutAccents.indexOf(word)]
+
+                this.triedWords.push(withAccent.toUpperCase().split(""))
                 this.triedWordsValidated.push(validations)
                 this.currentAttempt++
 
-                
                 //Estado de Win
                 if (validations.every(v => v.exact === true)) {
                     this.isOver = true
@@ -111,7 +111,7 @@ export abstract class Game {
                 else {
                     this.currentLetters = []
                 }
-                this.UpdateRichPresence(this.currentAttempt+1, this.renderBoard([validations], 5, false),this.isOver)
+                this.UpdateRichPresence(this.currentAttempt + 1, this.renderBoard([validations], 5, false), this.isOver)
                 View.renderKeyboard(this.keyboard, validations, this.WORD_SIZE, false)
             }
 
@@ -177,35 +177,43 @@ export abstract class Game {
     }
 
 
-    private static async final(win: boolean, position: number = 6) {
+    private static async final(win: boolean, position: number = 6,) {
         await storage.init({ dir: homedir + "/.term-cli" })
 
         let count: number | undefined = await storage.getItem('count')
 
         if (count == undefined) {
-            console.log("")
             await this.resetStats();
             count = 0
         }
 
+        //Recupera as variavéis
         let wins = await storage.getItem('wins') as number
         let stats = await storage.getItem('stats') as number[]
 
-        let lastGame = await storage.getItem('lastGame') as Date
-        let lastWin = await storage.getItem('lastWin') as Date | undefined
+        let lastGameString = await storage.getItem('lastGame') as string | undefined
+        let lastWinString = await storage.getItem('lastWin') as string | undefined
 
-        let lastWinDate = lastWin ? new Date(lastWin) : ""
+        let lastGameDate = (lastGameString) ? new Date(new Date(lastGameString).toLocaleString("en-US", {timeZone: 'America/Recife'})) : new Date(2020, 0, 1)
+        let lastWinDate = (lastWinString) ? new Date(lastWinString) : new Date(2020, 0, 1)
 
-        let date = lastGame ? new Date(lastGame) : new Date()
+        //Condições para salvar as estatistícas
+        //1. O ultimo jogo não deve ter sido jogado no mesmo dia
+        let currentDate = new Date()
 
-        if (lastWin == undefined || lastWinDate < date) {
+        if (lastGameDate == undefined || 
+            lastGameDate.getDate() != currentDate.getDate() ||
+            lastGameDate.getMonth() != currentDate.getMonth() ||
+            lastGameDate.getFullYear() != currentDate.getFullYear()) {
 
-            date = new Date()
-            await storage.setItem("lastGame", date)
+            lastGameDate = currentDate
+
+            await storage.setItem("lastGame", lastGameDate.toDateString())
+
             if (win) {
                 wins++
-                lastWinDate = new Date()
-                await storage.setItem("lastWin", lastWinDate)   
+                lastWinDate = lastGameDate
+                await storage.setItem("lastWin", lastWinDate.toDateString())
             }
 
             count++
@@ -213,17 +221,17 @@ export abstract class Game {
             await storage.setItem("count", count);
             await storage.setItem("wins", wins);
             await storage.setItem("stats", stats)
-
         }
 
-        let lastWinDateInfo = ""
-        if (lastWinDate instanceof Date) {
-            lastWinDateInfo = lastWinDate.toLocaleDateString()
+        let auxLastWin = ""
+        if (lastWinString) {
+            auxLastWin = lastWinDate.toLocaleDateString('pt-Br', { dateStyle: 'short' })
         }
-        let lastGameDateInfo = date.toLocaleDateString()
+
+        let wordWithAccents = this.words[this.wordsWithoutAccents.indexOf(this.dailyWord)]
 
         await this.textToClipboard("Joguei term-cli! " + (position == 6 ? "❌" : (position + 1) + "/6"), this.renderBoard(this.triedWordsValidated))
-        View.renderStaticts(count, wins, stats, lastGameDateInfo, lastWinDateInfo)
+        View.renderStaticts(count, wins, stats, lastGameDate.toLocaleDateString('pt-Br', { dateStyle: 'short' }), auxLastWin, wordWithAccents)
 
         View.renderWarning("Estatísticas do jogo copiadas para a área de transferência")
     }
@@ -243,7 +251,7 @@ export abstract class Game {
             for (let j = 0; j < 5; j++) {
                 s += this.getBoardEmoction(validations[i][j])
             }
-            if(i == len-1 && !includeSpaceOnFinal) continue;
+            if (i == len - 1 && !includeSpaceOnFinal) continue;
             s += "\n"
         }
 
@@ -264,10 +272,8 @@ export abstract class Game {
         await store.setItem("count", 0);
         await store.setItem("wins", 0);
         await store.setItem("stats", [0, 0, 0, 0, 0, 0, 0])
-        let d = new Date()
-        d.setDate(d.getDate() - 5)
-        await store.setItem("lastGame", d)
-        await store.setItem("lastWin", "")  
+        await store.setItem("lastGame", undefined)
+        await store.setItem("lastWin", undefined)
     }
 
     private static loadTips() {
@@ -281,7 +287,7 @@ export abstract class Game {
         View.renderSection("A letra " + chalk.red("T") + " não contém na palavra.", false)
         View.renderSection("Os acentos não são considerados nas dicas.")
     }
-    
+
     private static EnableRichPresence() {
         this.discordClient = new Client({ transport: "ipc" })
 
@@ -293,27 +299,27 @@ export abstract class Game {
                 large_text: "term-cli",
             },
             timestamps: { start: Date.now() },
-            instance : true
+            instance: true
         }
 
-        this.discordClient.on("ready", () =>{
+        this.discordClient.on("ready", () => {
             this.discordClientIsReady = true
-            this.discordClient.request("SET_ACTIVITY", {pid: process.pid, activity: this.discordCurrentActivity})
+            this.discordClient.request("SET_ACTIVITY", { pid: process.pid, activity: this.discordCurrentActivity })
         })
 
-        this.discordClient.login({clientId: "943272235521675306"})
+        this.discordClient.login({ clientId: "943272235521675306" })
     }
 
-    private static UpdateRichPresence(attempt: number, board:string, isOver: boolean = false){
-        if(this.discordClientIsReady){
-            if(!isOver)
-                this.discordCurrentActivity.details = "Tentando a palavra diária ["+ attempt +"/6]"
+    private static UpdateRichPresence(attempt: number, board: string, isOver: boolean = false) {
+        if (this.discordClientIsReady) {
+            if (!isOver)
+                this.discordCurrentActivity.details = "Tentando a palavra diária [" + attempt + "/6]"
             else
                 this.discordCurrentActivity.details = "Vendo as estatísticas..."
-            
+
             this.discordCurrentActivity.state = board,
 
-            this.discordClient.request("SET_ACTIVITY", {pid: process.pid, activity: this.discordCurrentActivity})
+                this.discordClient.request("SET_ACTIVITY", { pid: process.pid, activity: this.discordCurrentActivity })
         }
     }
 

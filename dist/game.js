@@ -25,7 +25,7 @@ class Game {
         palavras_pt_br_1.Word.library = [...palavras_pt_br_1.BRISPELL, ...palavras_pt_br_1.UNVERSEDV2];
         this.words = palavras_pt_br_1.Word.getAllWords(this.WORD_SIZE, false, false, false, false);
         palavras_pt_br_1.Word.library = this.words;
-        this.wordsWithoutAccents = palavras_pt_br_1.Word.getAllWords(this.WORD_SIZE, true);
+        this.wordsWithoutAccents = this.words.map(a => a.normalize("NFD").replace(/[\u0300-\u036f]/g, ""));
         palavras_pt_br_1.Word.library = this.wordsWithoutAccents;
         this.dailyWord = palavras_pt_br_1.Word.getDailyWord();
     }
@@ -73,7 +73,8 @@ class Game {
             }
             else {
                 let validations = palavras_pt_br_1.Word.wordleValidator(this.dailyWord, word);
-                this.triedWords.push(this.currentLetters);
+                let withAccent = this.words[this.wordsWithoutAccents.indexOf(word)];
+                this.triedWords.push(withAccent.toUpperCase().split(""));
                 this.triedWordsValidated.push(validations);
                 this.currentAttempt++;
                 //Estado de Win
@@ -143,23 +144,29 @@ class Game {
             yield storage.init({ dir: os_1.homedir + "/.term-cli" });
             let count = yield storage.getItem('count');
             if (count == undefined) {
-                console.log("");
                 yield this.resetStats();
                 count = 0;
             }
+            //Recupera as variavéis
             let wins = yield storage.getItem('wins');
             let stats = yield storage.getItem('stats');
-            let lastGame = yield storage.getItem('lastGame');
-            let lastWin = yield storage.getItem('lastWin');
-            let lastWinDate = lastWin ? new Date(lastWin) : "";
-            let date = lastGame ? new Date(lastGame) : new Date();
-            if (lastWin == undefined || lastWinDate < date) {
-                date = new Date();
-                yield storage.setItem("lastGame", date);
+            let lastGameString = yield storage.getItem('lastGame');
+            let lastWinString = yield storage.getItem('lastWin');
+            let lastGameDate = (lastGameString) ? new Date(new Date(lastGameString).toLocaleString("en-US", { timeZone: 'America/Recife' })) : new Date(2020, 0, 1);
+            let lastWinDate = (lastWinString) ? new Date(lastWinString) : new Date(2020, 0, 1);
+            //Condições para salvar as estatistícas
+            //1. O ultimo jogo não deve ter sido jogado no mesmo dia
+            let currentDate = new Date();
+            if (lastGameDate == undefined ||
+                lastGameDate.getDate() != currentDate.getDate() ||
+                lastGameDate.getMonth() != currentDate.getMonth() ||
+                lastGameDate.getFullYear() != currentDate.getFullYear()) {
+                lastGameDate = currentDate;
+                yield storage.setItem("lastGame", lastGameDate.toDateString());
                 if (win) {
                     wins++;
-                    lastWinDate = new Date();
-                    yield storage.setItem("lastWin", lastWinDate);
+                    lastWinDate = lastGameDate;
+                    yield storage.setItem("lastWin", lastWinDate.toDateString());
                 }
                 count++;
                 stats[position]++;
@@ -167,13 +174,13 @@ class Game {
                 yield storage.setItem("wins", wins);
                 yield storage.setItem("stats", stats);
             }
-            let lastWinDateInfo = "";
-            if (lastWinDate instanceof Date) {
-                lastWinDateInfo = lastWinDate.toLocaleDateString();
+            let auxLastWin = "";
+            if (lastWinString) {
+                auxLastWin = lastWinDate.toLocaleDateString('pt-Br', { dateStyle: 'short' });
             }
-            let lastGameDateInfo = date.toLocaleDateString();
+            let wordWithAccents = this.words[this.wordsWithoutAccents.indexOf(this.dailyWord)];
             yield this.textToClipboard("Joguei term-cli! " + (position == 6 ? "❌" : (position + 1) + "/6"), this.renderBoard(this.triedWordsValidated));
-            view_1.View.renderStaticts(count, wins, stats, lastGameDateInfo, lastWinDateInfo);
+            view_1.View.renderStaticts(count, wins, stats, lastGameDate.toLocaleDateString('pt-Br', { dateStyle: 'short' }), auxLastWin, wordWithAccents);
             view_1.View.renderWarning("Estatísticas do jogo copiadas para a área de transferência");
         });
     }
@@ -211,10 +218,8 @@ class Game {
             yield store.setItem("count", 0);
             yield store.setItem("wins", 0);
             yield store.setItem("stats", [0, 0, 0, 0, 0, 0, 0]);
-            let d = new Date();
-            d.setDate(d.getDate() - 5);
-            yield store.setItem("lastGame", d);
-            yield store.setItem("lastWin", "");
+            yield store.setItem("lastGame", undefined);
+            yield store.setItem("lastWin", undefined);
         });
     }
     static loadTips() {
