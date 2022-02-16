@@ -102,7 +102,7 @@ export abstract class View {
             console.log(string)
     }
 
-    static renderStaticts (games:  number, wins: number,  stats: number[], lastGameDateInfo: string, lastWinDateInfo: string) {
+    static renderStaticts (games:  number, wins: number,  stats: number[], lastGameDateInfo: string, lastWinDateInfo: string, trueWord: string) {
         console.log()
         this.renderSeparator()
         console.log(chalk.blue("Jogos: " + games) + 
@@ -114,7 +114,7 @@ export abstract class View {
         )
 
         console.log()
-
+        console.log("A palavra correta é " + chalk.green(trueWord) +"\n")
         let blocks = Math.floor(process.stdout.columns/8)
         let s = ""
         let icons = ["1 ","2 ","3 ","4 ","5 ","6 ","❌"]

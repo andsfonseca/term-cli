@@ -61,7 +61,7 @@ class View {
         string += ".";
         console.log(string);
     }
-    static renderStaticts(games, wins, stats, lastGameDateInfo, lastWinDateInfo) {
+    static renderStaticts(games, wins, stats, lastGameDateInfo, lastWinDateInfo, trueWord) {
         console.log();
         this.renderSeparator();
         console.log(chalk_1.default.blue("Jogos: " + games) +
@@ -71,6 +71,7 @@ class View {
             chalk_1.default.blue("\nÚltima Vitória: ") + chalk_1.default.yellow(lastWinDateInfo) +
             chalk_1.default.blue("\tÚltima Partida: ") + chalk_1.default.white(lastGameDateInfo));
         console.log();
+        console.log("A palavra correta é " + chalk_1.default.green(trueWord) + "\n");
         let blocks = Math.floor(process.stdout.columns / 8);
         let s = "";
         let icons = ["1 ", "2 ", "3 ", "4 ", "5 ", "6 ", "❌"];
