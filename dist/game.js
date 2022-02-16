@@ -17,6 +17,7 @@ const os_1 = require("os");
 const palavras_pt_br_1 = require("@andsfonseca/palavras-pt-br");
 const view_1 = require("./view");
 const chalk_1 = __importDefault(require("chalk"));
+const discord_rpc_1 = require("discord-rpc");
 const clipboardy = require('clipboardy');
 const storage = require('node-persist');
 class Game {
@@ -87,6 +88,7 @@ class Game {
                 else {
                     this.currentLetters = [];
                 }
+                this.UpdateRichPresence(this.currentAttempt + 1, this.renderBoard([validations], 5, false), this.isOver);
                 view_1.View.renderKeyboard(this.keyboard, validations, this.WORD_SIZE, false);
             }
         }
@@ -122,6 +124,7 @@ class Game {
         view_1.View.renderKeyboard(this.keyboard);
     }
     static start() {
+        this.EnableRichPresence();
         //Visualização Inicial
         view_1.View.clear();
         view_1.View.renderTitle(this.title);
@@ -181,19 +184,21 @@ class Game {
             return "🟨";
         return "🟥";
     }
-    static renderBoard(validations, size = 5) {
+    static renderBoard(validations, size = 5, includeSpaceOnFinal = true) {
         let s = "";
         for (let i = 0, len = validations.length; i < len; i++) {
             for (let j = 0; j < 5; j++) {
                 s += this.getBoardEmoction(validations[i][j]);
             }
+            if (i == len - 1 && !includeSpaceOnFinal)
+                continue;
             s += "\n";
         }
         return s;
     }
     static textToClipboard(message, board) {
         return __awaiter(this, void 0, void 0, function* () {
-            let s = message + "\n\n" + board;
+            let s = message + "\n\n" + board + "\n\nInstale também em: https://www.npmjs.com/package/@andsfonseca/term-cli";
             yield clipboardy.write(s);
         });
     }
@@ -221,6 +226,34 @@ class Game {
         view_1.View.renderStatus(["L", "E", "I", "T", "E"], [{ exact: false, contains: false, word: "" }, { exact: false, contains: false, word: "" }, { exact: false, contains: false, word: "" }, { exact: false, contains: false, word: "T" }, { exact: false, contains: false, word: "" }]);
         view_1.View.renderSection("A letra " + chalk_1.default.red("T") + " não contém na palavra.", false);
         view_1.View.renderSection("Os acentos não são considerados nas dicas.");
+    }
+    static EnableRichPresence() {
+        this.discordClient = new discord_rpc_1.Client({ transport: "ipc" });
+        this.discordCurrentActivity = {
+            details: "Tentando a palavra diária [1/6]",
+            state: "Pensando...",
+            assets: {
+                large_image: "term-cli",
+                large_text: "term-cli",
+            },
+            timestamps: { start: Date.now() },
+            instance: true
+        };
+        this.discordClient.on("ready", () => {
+            this.discordClientIsReady = true;
+            this.discordClient.request("SET_ACTIVITY", { pid: process.pid, activity: this.discordCurrentActivity });
+        });
+        this.discordClient.login({ clientId: "943272235521675306" });
+    }
+    static UpdateRichPresence(attempt, board, isOver = false) {
+        if (this.discordClientIsReady) {
+            if (!isOver)
+                this.discordCurrentActivity.details = "Tentando a palavra diária [" + attempt + "/6]";
+            else
+                this.discordCurrentActivity.details = "Vendo as estatísticas...";
+            this.discordCurrentActivity.state = board,
+                this.discordClient.request("SET_ACTIVITY", { pid: process.pid, activity: this.discordCurrentActivity });
+        }
     }
 }
 exports.Game = Game;
