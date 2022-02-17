@@ -243,7 +243,10 @@ export abstract class Game {
      */
     public static start() {
 
-        this.EnableRichPresence()
+        this.EnableRichPresence().then((found) => {
+            if(found)
+                console.log("Discord Presence Enabled")
+        })
         //Visualização Inicial
         View.clear()
         View.renderTitle(this.title)
@@ -284,14 +287,14 @@ export abstract class Game {
         let lastGameString = await storage.getItem('lastGame') as string | undefined
         let lastWinString = await storage.getItem('lastWin') as string | undefined
 
-        let lastGameDate = (lastGameString) ? new Date(new Date(lastGameString).toLocaleString("en-US", {timeZone: 'America/Recife'})) : new Date(2020, 0, 1)
+        let lastGameDate = (lastGameString) ? new Date(new Date(lastGameString).toLocaleString("en-US", { timeZone: 'America/Recife' })) : new Date(2020, 0, 1)
         let lastWinDate = (lastWinString) ? new Date(lastWinString) : new Date(2020, 0, 1)
 
         //Condições para salvar as estatistícas
         //1. O ultimo jogo não deve ter sido jogado no mesmo dia
         let currentDate = new Date()
 
-        if (lastGameDate == undefined || 
+        if (lastGameDate == undefined ||
             lastGameDate.getDate() != currentDate.getDate() ||
             lastGameDate.getMonth() != currentDate.getMonth() ||
             lastGameDate.getFullYear() != currentDate.getFullYear()) {
@@ -404,9 +407,8 @@ export abstract class Game {
     /**
      * Habilita o Discord Rich Presence
      */
-    private static EnableRichPresence() {
+    private static async EnableRichPresence() {
         this.discordClient = new Client({ transport: "ipc" })
-
         this.discordCurrentActivity = {
             details: "Tentando a palavra diária [1/6]",
             state: "Pensando...",
@@ -420,10 +422,17 @@ export abstract class Game {
 
         this.discordClient.on("ready", () => {
             this.discordClientIsReady = true
+            console.log("inside")
             this.discordClient.request("SET_ACTIVITY", { pid: process.pid, activity: this.discordCurrentActivity })
         })
 
-        this.discordClient.login({ clientId: "943272235521675306" })
+        try {
+            await this.discordClient.login({ clientId: "943272235521675306" })
+            return true
+        }
+        catch (e) {
+            return false
+        }
     }
 
     /**
