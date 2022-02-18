@@ -34,7 +34,12 @@ class Game {
         palavras_pt_br_1.Word.library = this.words;
         this.wordsWithoutAccents = this.words.map(a => a.normalize("NFD").replace(/[\u0300-\u036f]/g, ""));
         palavras_pt_br_1.Word.library = this.wordsWithoutAccents;
-        this.dailyWord = palavras_pt_br_1.Word.getDailyWord();
+        if (this.isARandomWord) {
+            this.dailyWord = palavras_pt_br_1.Word.getRandomWord();
+        }
+        else {
+            this.dailyWord = palavras_pt_br_1.Word.getDailyWord();
+        }
     }
     /**
      * Inicializa o teclado com as letra do Alfabeto.
@@ -150,22 +155,24 @@ class Game {
     /**
      * Inicializa o jogo
      */
-    static start() {
-        this.EnableRichPresence().then((_) => {
-            console.log("Discord Presence Enabled");
+    static start(isARandomWord) {
+        this.isARandomWord = isARandomWord;
+        this.EnableRichPresence().then((found) => {
+            if (found)
+                console.log("Discord Presence Enabled");
         });
         //Visualização Inicial
-        // View.clear()
-        // View.renderTitle(this.title)
-        // this.loadTips()
-        // //Carrega a Base de Dados
-        // this.initializeDatabase();
-        // //Cria o teclado
-        // this.initalizeKeyboard();
-        // //Carrega o tabuleiro
-        // this.loadBoard()
-        // //Game Loop
-        // this.loop()
+        view_1.View.clear();
+        view_1.View.renderTitle(this.title);
+        this.loadTips();
+        //Carrega a Base de Dados
+        this.initializeDatabase();
+        //Cria o teclado
+        this.initalizeKeyboard();
+        //Carrega o tabuleiro
+        this.loadBoard();
+        //Game Loop
+        this.loop();
     }
     /**
      * Responsável por mostra a tela de final do Jogo ao usuário e salvar suas estatísticas
@@ -189,11 +196,12 @@ class Game {
             let lastWinDate = (lastWinString) ? new Date(lastWinString) : new Date(2020, 0, 1);
             //Condições para salvar as estatistícas
             //1. O ultimo jogo não deve ter sido jogado no mesmo dia
+            //2. Não deve ser uma palavra aleatória
             let currentDate = new Date();
-            if (lastGameDate == undefined ||
+            if ((lastGameDate == undefined ||
                 lastGameDate.getDate() != currentDate.getDate() ||
                 lastGameDate.getMonth() != currentDate.getMonth() ||
-                lastGameDate.getFullYear() != currentDate.getFullYear()) {
+                lastGameDate.getFullYear() != currentDate.getFullYear()) && !this.isARandomWord) {
                 lastGameDate = currentDate;
                 yield storage.setItem("lastGame", lastGameDate.toDateString());
                 if (win) {
@@ -295,7 +303,6 @@ class Game {
     static EnableRichPresence() {
         return __awaiter(this, void 0, void 0, function* () {
             this.discordClient = new discord_rpc_1.Client({ transport: "ipc" });
-            console.log("teste");
             this.discordCurrentActivity = {
                 details: "Tentando a palavra diária [1/6]",
                 state: "Pensando...",
@@ -306,19 +313,17 @@ class Game {
                 timestamps: { start: Date.now() },
                 instance: true
             };
-            console.log("teste");
             this.discordClient.on("ready", () => {
                 this.discordClientIsReady = true;
                 console.log("inside");
                 this.discordClient.request("SET_ACTIVITY", { pid: process.pid, activity: this.discordCurrentActivity });
             });
-            console.log("teste");
             try {
                 yield this.discordClient.login({ clientId: "943272235521675306" });
-                console.log("i");
+                return true;
             }
             catch (e) {
-                console.log(typeof e);
+                return false;
             }
         });
     }
@@ -394,6 +399,10 @@ Game.keyboard = {};
  * Tamanho do tabuleiro.
  */
 Game.boardSize = 5;
+/**
+ *  Informa se é uma palavra aleatória.
+ */
+Game.isARandomWord = false;
 /**
  *  Informa se o jogo acabou.
  */
