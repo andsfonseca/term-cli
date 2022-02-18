@@ -16,6 +16,7 @@ const cli = () => {
         .name('term-cli')
         .description(PROJECT_SETTINGS.description)
         .option('-r, --reset', 'Reinicializar estatísticas')
+        .option('-n, --new', 'Gerar palavra aleatória')
         .action((args) => {
             if(args.reset != undefined && args.reset){
                 Game.resetStats().then(() => {
@@ -24,8 +25,10 @@ const cli = () => {
             }
             else{
                 Game.title = BANNER
-                Game.start()
+                Game.start(args.new != undefined && args.new)
+                
             }
+
         })
 
     program.addHelpText('before', BANNER);

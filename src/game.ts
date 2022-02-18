@@ -71,6 +71,12 @@ export abstract class Game {
      * Tamanho do tabuleiro.
      */
     private static boardSize: number = 5;
+    
+    /**
+     *  Informa se é uma palavra aleatória.
+     */
+     private static isARandomWord = false;
+    
     /**
      *  Informa se o jogo acabou.
      */
@@ -79,6 +85,7 @@ export abstract class Game {
      * Client RPC do Discord.
      */
     private static discordClient: any;
+
     /**
      * Atividade Atual do RPC.
      */
@@ -105,7 +112,12 @@ export abstract class Game {
         Word.library = this.words
         this.wordsWithoutAccents = this.words.map(a => a.normalize("NFD").replace(/[\u0300-\u036f]/g, ""))
         Word.library = this.wordsWithoutAccents
-        this.dailyWord = Word.getDailyWord()
+        if(this.isARandomWord) {
+            this.dailyWord = Word.getRandomWord()    
+        }else{
+            this.dailyWord = Word.getDailyWord()
+        }
+        
     }
 
     /**
@@ -241,7 +253,8 @@ export abstract class Game {
     /**
      * Inicializa o jogo
      */
-    public static start() {
+    public static start(isARandomWord : boolean) {
+        this.isARandomWord = isARandomWord;
 
         this.EnableRichPresence().then((found) => {
             if(found)
@@ -292,12 +305,13 @@ export abstract class Game {
 
         //Condições para salvar as estatistícas
         //1. O ultimo jogo não deve ter sido jogado no mesmo dia
+        //2. Não deve ser uma palavra aleatória
         let currentDate = new Date()
 
-        if (lastGameDate == undefined ||
+        if ((lastGameDate == undefined ||
             lastGameDate.getDate() != currentDate.getDate() ||
             lastGameDate.getMonth() != currentDate.getMonth() ||
-            lastGameDate.getFullYear() != currentDate.getFullYear()) {
+            lastGameDate.getFullYear() != currentDate.getFullYear()) && !this.isARandomWord) {
 
             lastGameDate = currentDate
 
