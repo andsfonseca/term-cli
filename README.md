@@ -29,6 +29,16 @@ Abra o terminal e execute:
 term-cli
 ```
 
+Para jogar com uma palavra aleatória, execute:
+
+```shell
+term-cli -n
+```
+ou 
+```shell
+term-cli --new
+```
+
 Para reinicializar as estatistícas do jogo, execute:
 
 ```shell

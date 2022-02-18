@@ -1,5 +1,5 @@
 {
-    "version": "1.0.0",
+    "version": "1.0.3",
     "application-name": "term-cli",
     "description": "O clássico jogo de adivinhação de palavras agora para linha de comando. Uma nova palavra a cada dia!"
 }
