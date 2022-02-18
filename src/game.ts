@@ -257,8 +257,6 @@ export abstract class Game {
         this.isARandomWord = isARandomWord;
 
         this.EnableRichPresence().then((found) => {
-            if(found)
-                console.log("Discord Presence Enabled")
         })
         //Visualização Inicial
         View.clear()
@@ -436,7 +434,6 @@ export abstract class Game {
 
         this.discordClient.on("ready", () => {
             this.discordClientIsReady = true
-            console.log("inside")
             this.discordClient.request("SET_ACTIVITY", { pid: process.pid, activity: this.discordCurrentActivity })
         })
 
