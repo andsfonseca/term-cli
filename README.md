@@ -10,10 +10,7 @@
 
 O clássico jogo de adivinhação de palavras no estilo Wordle, agora para linha de comando. Uma nova palavra a cada dia!
 
-## O que é?
-
 ![term-cli](https://media.giphy.com/media/aUrOVeOzcJzP4A14Ma/giphy.gif)
-
 
 ## Instalação
 
@@ -32,6 +29,16 @@ Abra o terminal e execute:
 term-cli
 ```
 
+Para jogar com uma palavra aleatória, execute:
+
+```shell
+term-cli -n
+```
+ou 
+```shell
+term-cli --new
+```
+
 Para reinicializar as estatistícas do jogo, execute:
 
 ```shell
@@ -46,6 +53,51 @@ term-cli --reset
 
 * As cores e fontes do jogo podem variar de acordo com tema e estilo do seu terminal
 
+## Dicionário de palavras
+
+As palavras foram retiradas da biblioteca [palavras-pt-br](https://github.com/andsfonseca/palavras-pt-br).
+
+A biblioteca contém diversos listas de palavras de diferentes fontes, incluindo a possibilidade de mistura-las ou customiza-las.
+
+## Customização
+
+Para cria sua própria versão do term-cli, com mais opções de customização, faça uma cópia do projeto.
+
+```shell
+git clone https://github.com/andsfonseca/term-cli.git
+```
+
+Váriaveis de fácil acesso, como número de tentativas e tamanho da palavra podem ser facilmente modificadas no arquivos do jogo.
+
+## Interface do jogo
+
+### Dicas Iniciais
+
+> Exibidas no ínicio de cada partida
+
+![image](https://user-images.githubusercontent.com/7833466/154311322-9f3c5060-3166-48b1-bb8b-8d233b356216.png)
+
+### Tabuleiro
+
+> Exibida durante o jogo
+
+![image](https://user-images.githubusercontent.com/7833466/154312470-ae017502-b27a-472d-a93c-8c1f1c2760b2.png)
+
+### Estatísticas
+
+> Apresenta as estatísticas diárias e copia um texto compartilhável na área de transferência
+
+![image](https://user-images.githubusercontent.com/7833466/154313145-39586663-a574-4908-877d-021e04ec21a3.png)
+
+```
+Joguei term-cli! 3/6
+
+🟨🟥🟥🟥🟥
+🟥🟨🟩🟥🟨
+🟩🟩🟩🟩🟩
+
+Instale também em: https://www.npmjs.com/package/@andsfonseca/term-cli
+```
 ## Issues
 
 Sinta-se livre para contribuir com o projeto.
